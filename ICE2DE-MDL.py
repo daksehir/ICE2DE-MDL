@@ -85,7 +85,7 @@ def SampEn(L, m, r):
     N = len(L)
     B = 0.0
     A = 0.0
-    #sıfıra bölme hatasının önüne geçmek için epsilon kullanıldı
+    #Epsilon was used to avoid division by zero error
     EPSILON = 1e-12
     # Split time series and save all templates of length m
     xmi = np.array([L[i : i + m] for i in range(N - m)])
@@ -121,8 +121,8 @@ def calculate_entropy(imfs):
     # Ratio_entropy = column_ratio(imf_entropy_StdDeviation) # İlk kolon: ApEn, İkinci kolon SampEn
 
 def selection_imfs(imfs, Ratio_entropy):
-#Birinci ayrıştırmada elde edilen IMF'lerden ApEn_Ratio ve SampEn_Ratio > 20 (%20) olan IMF'ler yüksek frekanslı olarak ele alınır
-#ve ikinci ayrıştırmaya tabi tutulur -> high_frequency_IMFs. Kalanları ise selected_IMFs_first dizisine atanır. 
+#Among the IMFs obtained in the first decomposition, IMFs with ApEn_Ratio and SampEn_Ratio > 20 (20%) are considered as high frequency.
+#and undergoes second parsing -> high_frequency_IMFs. The rest are assigned to the selected_IMFs_first array.
 
     selected_IMFs_first = []
     high_frequency_IMFs = []
@@ -134,7 +134,7 @@ def selection_imfs(imfs, Ratio_entropy):
         else:
             high_frequency_IMFs.append(imfs[i])
 
-    #Yüksek frekanslı olarak belirlenen IMF'lerin toplanması ve çizdirilmesi
+    #Collecting and plotting high frequency determined IMFs
     high_frequency_IMF_sum=0
     for num in high_frequency_IMFs:
         high_frequency_IMF_sum += num
@@ -167,14 +167,8 @@ def rrmse(actual, predicted):
 
 def smape(y_true, y_pred):
     """
-    Symmetric Mean Absolute Percentage Error (SMAPE) hesapla.
+    Symmetric Mean Absolute Percentage Error (SMAPE) 
 
-    Parametreler:
-    - y_true: Gerçek değerlerin numpy dizisi.
-    - y_pred: Tahmin edilen değerlerin numpy dizisi.
-
-    Döndürülen değer:
-    - SMAPE değeri.
     """
     numerator = np.abs(y_pred - y_true)
     denominator = (np.abs(y_true) + np.abs(y_pred)) / 2
@@ -217,7 +211,7 @@ df = df.fillna(method='bfill')
 
 x = df['Close'].values
 
-#CSI500 VERİSİNİ CSV DOSYASINDAN OKUTTUK
+#WE READ CSI500 DATA FROM CSV FILE
 # df = pd.read_csv('E:\ICEEMDAN-Makale-Sonuc-26122023\CSI500_.csv',sep = ';', parse_dates = True)
 # df = df.fillna(method='bfill')
 # x = df['Close'].values
@@ -247,7 +241,7 @@ r=0.2
 
 
 Entropy_StdDeviation_first_close = calculate_entropy(np.array(iceemdan_imfs))
-Entropy_StdDeviation_first_close = Entropy_StdDeviation_first_close.fillna(method='ffill') #nan değeri varsa üstündeki değerle dolduracak
+Entropy_StdDeviation_first_close = Entropy_StdDeviation_first_close.fillna(method='ffill') #If there is a nan value, it will fill it with the value above it.
 col_sum = np.sum(Entropy_StdDeviation_first_close, axis=0)
 ratios = np.divide(Entropy_StdDeviation_first_close, col_sum)
 Ratio_entropy = ratios*100
@@ -255,15 +249,15 @@ Ratio_entropy_first_close = Ratio_entropy.iloc[:,:2]
 
 selected_IMFs_first_close, high_frequency_IMFs_first_close, high_frequency_IMF_sum_first_close = selection_imfs(np.array(iceemdan_imfs), Ratio_entropy_first_close)
 # =============================================================================
-#BİRİNCİ DECOMPOSİTİON SONUÇLARININ ÇİZDİRİLMESİ
+#PLOTING THE FIRST DECOMPOSITION RESULTS
 plt.figure()
-# DataFrame'in index'ini güncelleyerek her bir satıra "IMF1", "IMF2", ... şeklinde isim atayalım
+
 iceemdan_imfs.index = [f"IMF{i+1}" for i in range(len(iceemdan_imfs))]
 
-# DataFrame'deki her satır için ayrı renkler seçelim
+
 colors = plt.cm.viridis(np.linspace(0, 1, len(iceemdan_imfs)+1))
 
-# Subplotları oluşturarak her bir satırı çizgi grafik olarak çizelim
+
 fig, axes = plt.subplots(nrows=len(iceemdan_imfs)+1, ncols=1, figsize=(8, 9), sharex=True)
 # Plot the original data in the first subplot
 axes[0].plot(df['Close'].values)
@@ -274,18 +268,18 @@ for i, (row_label, row) in enumerate(iceemdan_imfs.iterrows()):
     axes[i+1].plot(row, label=row_label, color=colors[i+1])
     #axes[i].legend()
     
-    # Subplot'un soluna dikey olarak grafik ismini ekleyelim
+    
     axes[i+1].text(-0.07, 0.5, row_label, rotation=90, verticalalignment='center', horizontalalignment='right', transform=axes[i+1].transAxes)
 
-# Grafik üzerine açıklamaları ekleyelim
+
 plt.xlabel('Trading Day')
 #plt.ylabel('Y Ekseni')
 plt.suptitle('First Decomposition Results', x=0.54)
 
-# Grafikleri düzenleyelim
+
 plt.tight_layout()
 
-# Grafiği gösterelim
+
 plt.show()
 # 
 
@@ -311,16 +305,16 @@ Ratio_entropy_second = ratios_second*100
 Ratio_entropy_second_close = Ratio_entropy_second.iloc[:,:2]
 selected_IMFs_second_close, high_frequency_IMFs_second_close, high_frequency_IMF_sum_second_close = selection_imfs(imfs_second_close, Ratio_entropy_second_close)
 # =============================================================================
-# İKİNCİ DECOMPOSİTİON SONUÇLARININ ÇİZDİRİLMESİ
+# PLOTING THE SECOND DECOMPOSITION RESULTS
 
 plt.figure()
-# DataFrame'in index'ini güncelleyerek her bir satıra "IMF1", "IMF2", ... şeklinde isim atayalım
+
 imfs_iceemdan_second.index = [f"IMF{i+1}" for i in range(len(imfs_iceemdan_second))]
 
-# DataFrame'deki her satır için ayrı renkler seçelim
+
 colors = plt.cm.viridis(np.linspace(0, 1, len(imfs_iceemdan_second)+1))
 
-# Subplotları oluşturarak her bir satırı çizgi grafik olarak çizelim
+
 fig, axes = plt.subplots(nrows=len(imfs_iceemdan_second)+1, ncols=1, figsize=(8, 9), sharex=True)
 # Plot the original data in the first subplot
 axes[0].plot(high_frequency_IMF_sum_first_close)
@@ -331,15 +325,15 @@ for i, (row_label, row) in enumerate(imfs_iceemdan_second.iterrows()):
     axes[i+1].plot(row, label=row_label, color=colors[i+1])
     #axes[i].legend()
     
-    # Subplot'un soluna dikey olarak grafik ismini ekleyelim
+    
     axes[i+1].text(-0.08, 0.5, row_label, rotation=90, verticalalignment='center', horizontalalignment='right', transform=axes[i+1].transAxes)
 
-# Grafik üzerine açıklamaları ekleyelim
+
 plt.xlabel('Trading Day')
 #plt.ylabel('Y Ekseni')
 plt.suptitle('Second Decomposition Results', x=0.54)
 
-# Grafikleri düzenleyelim
+
 plt.tight_layout()
 
 # Grafiği gösterelim
@@ -541,10 +535,10 @@ def find_best_model (X_train, y_train, X_test, y_test, y_test_orj, timestep):
                          f'{model_name}_Metrics': model_info['metrics']}
         model_metrics_list.append(model_metrics)
     
-    # Diğer modelleri de ekleyin
+  
 
     best_model_name = min(models, key=lambda k: models[k]['metrics']['RMSE'])
-    # En iyi modeli RMSE'ye göre seçin
+    
 
     return best_model_name, models[best_model_name]['predictions'], models[best_model_name]['metrics'], model_metrics_list
     
@@ -580,14 +574,14 @@ def each_IMFs_train (imfs_set, timestep):
         model_metrics_list.append(model_metrics)
 
        
-        # En iyi model ve metrik değerlerini DataFrame'e ekleyin
+       
         metrics_dict = {'IMF': f'IMF_{i+1}', 'BestModel': best_model_name, 'BestModelMetrics': best_model_metrics, 'BestModelPredictions': best_model_predictions}
         metrics_list.append(metrics_dict)
 
     metrics_df = pd.DataFrame(metrics_list)
     
     
-    #Son IMF'nin svr ile eğitilmesi
+    #Training the last IMF with svr
     data = imfs_set[-1:]
     dataset_knn = np.array(data, dtype = float).reshape(-1,1)
     dataset_knn_scaled = scaler.fit_transform(np.array(dataset_knn).reshape(-1,1))
@@ -648,8 +642,8 @@ def each_IMFs_train (imfs_set, timestep):
     metrics_list.append(metrics_svr)
     return metrics_list, model_metrics_list, descaled_test_predict_svr
     
-#metric_list: en iyi model sonuçları
-#model_metric_list: tüm model sonuçları
+#metric_list: best model results
+#model_metric_list: all model results
 timestep = 10
 # timestep=15
 time_step_path = 'timestep10'
@@ -661,13 +655,13 @@ second_decomposition_train_result_metric_list, second_decomposition_train_result
 
 first_decomposition_scaled_predictions = np.zeros_like(first_decomposition_train_result_metric_list[0]['BestModelPredictions'])
 for i in range(len(first_decomposition_train_result_metric_list)-2):
-    #-2 olmasının sebebi: son ımf hem lstm, gru, lstm-batch ile eğitildi hem de ayrı olarak svr ile eğitildi. Bu sebeple -2
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+    
+    
     first_decomposition_scaled_predictions += first_decomposition_train_result_metric_list[i]['BestModelPredictions']
 
 second_decomposition_scaled_predictions = np.zeros_like(second_decomposition_train_result_metric_list[0]['BestModelPredictions'])
 for i in range(len(second_decomposition_train_result_metric_list)-2):
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+    
     second_decomposition_scaled_predictions += second_decomposition_train_result_metric_list[i]['BestModelPredictions']
 
 
@@ -677,7 +671,7 @@ final_decomposition_scaled_predictions = first_decomposition_scaled_predictions 
 
 
 # =============================================================================
-# Final prediction result çizim
+# Plotting Final prediction result
 
 plt.figure()
 fig = plt.figure(figsize=(12, 6))
@@ -696,51 +690,48 @@ full_path5 = os.path.join(time_step_folder_path, file_name5)
 fig.savefig(full_path5)
 
 # =============================================================================
-# Tek bir LSTM modeli ile tüm IMFlerin eğitimine ait sonuç
+# Result of training all IMFs with a single LSTM model
 
 first_decomposition_scaled_predictions_LSTM = np.zeros_like(first_decomposition_train_result_model_metric_list[0][0]['LSTM_Predictions'])
 for i in range(len(first_decomposition_train_result_model_metric_list)-1):
-    #-1 olmasının sebebi: son satırda, son IMFnin svr ile eğitildiği sonuçlar var.
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+   
     first_decomposition_scaled_predictions_LSTM += first_decomposition_train_result_model_metric_list[i][0]['LSTM_Predictions']
 
 second_decomposition_scaled_predictions_LSTM = np.zeros_like(second_decomposition_train_result_model_metric_list[0][0]['LSTM_Predictions'])
 for i in range(len(second_decomposition_train_result_model_metric_list)-1):
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+    
     second_decomposition_scaled_predictions_LSTM += second_decomposition_train_result_model_metric_list[i][0]['LSTM_Predictions']
 
 final_decomposition_scaled_predictions_LSTM = first_decomposition_scaled_predictions_LSTM + second_decomposition_scaled_predictions_LSTM
 
 
 # =============================================================================
-# Tek bir LSTM-Batch modeli ile tüm IMFlerin eğitimine ait sonuç
+# Result of training all IMFs with a single LSTM-BN model
 
 first_decomposition_scaled_predictions_LSTMBatch = np.zeros_like(first_decomposition_train_result_model_metric_list[0][2]['LSTM-Batch_Predictions'])
 for i in range(len(first_decomposition_train_result_model_metric_list)-1):
-    #-1 olmasının sebebi: son satırda, son IMFnin svr ile eğitildiği sonuçlar var.
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+
     first_decomposition_scaled_predictions_LSTMBatch += first_decomposition_train_result_model_metric_list[i][2]['LSTM-Batch_Predictions']
 
 second_decomposition_scaled_predictions_LSTMBatch = np.zeros_like(second_decomposition_train_result_model_metric_list[0][2]['LSTM-Batch_Predictions'])
 for i in range(len(second_decomposition_train_result_model_metric_list)-1):
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+    
     second_decomposition_scaled_predictions_LSTMBatch += second_decomposition_train_result_model_metric_list[i][2]['LSTM-Batch_Predictions']
 
 final_decomposition_scaled_predictions_LSTMBatch = first_decomposition_scaled_predictions_LSTMBatch + second_decomposition_scaled_predictions_LSTMBatch
 
 
 # =============================================================================
-# Tek bir GRU modeli ile tüm IMFlerin eğitimine ait sonuç
+# Result of training all IMFs with a single GRU model
 
 first_decomposition_scaled_predictions_GRU = np.zeros_like(first_decomposition_train_result_model_metric_list[0][1]['GRU_Predictions'])
 for i in range(len(first_decomposition_train_result_model_metric_list)-1):
-    #-1 olmasının sebebi: son satırda, son IMFnin svr ile eğitildiği sonuçlar var.
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+
     first_decomposition_scaled_predictions_GRU += first_decomposition_train_result_model_metric_list[i][1]['GRU_Predictions']
 
 second_decomposition_scaled_predictions_GRU = np.zeros_like(second_decomposition_train_result_model_metric_list[0][1]['GRU_Predictions'])
 for i in range(len(second_decomposition_train_result_model_metric_list)-1):
-    # Her bir öğenin 'prediction' anahtarındaki değeri topla
+    
     second_decomposition_scaled_predictions_GRU += second_decomposition_train_result_model_metric_list[i][1]['GRU_Predictions']
 
 final_decomposition_scaled_predictions_GRU = first_decomposition_scaled_predictions_GRU + second_decomposition_scaled_predictions_GRU
